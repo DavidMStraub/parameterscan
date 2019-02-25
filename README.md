@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/DavidMStraub/parameterscan.svg?branch=master)](https://travis-ci.org/DavidMStraub/parameterscan) [![Coverage Status](https://coveralls.io/repos/github/DavidMStraub/parameterscan/badge.svg?branch=master)](https://coveralls.io/github/DavidMStraub/parameterscan?branch=master)
+
 # parameterscan
 
 A simple Python package for doing parameter scans.
