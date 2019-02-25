@@ -1,5 +1,8 @@
 import uuid
 import pandas as pd
+import multiprocessing
+import schwimmbad
+from functools import partial
 
 
 class RandomScan():
@@ -16,13 +19,23 @@ class RandomScan():
     def get_results(self, parameters, key):
         return self.funcdic[key](parameters)
 
-    def run(self, batchsize=1, batches=1):
+    def run(self, batchsize=1, batches=1, threads=1):
+        if threads == 1:
+            pool = schwimmbad.SerialPool()
+        else:
+            pool = multiprocessing.Pool()
         for i in range(batches):
             par_list = self.get_parameters(size=batchsize)
             indices = [uuid.uuid4().hex for i in range(batchsize)]
             df = pd.DataFrame(par_list, index=indices)
             self.store.store_df('parameters', df, append=True)
             for key in self.funcdic:
-                results_dict = [self.get_results(p, key) for p in par_list]
-                df = pd.DataFrame(results_dict, index=indices)
+                worker = partial(_run_single, scan=self, key=key)
+                results = list(pool.map(worker, par_list))
+                df = pd.DataFrame(results, index=indices)
                 self.store.store_df(key, df, append=True)
+        pool.close()
+
+
+def _run_single(p, scan, key):
+    return scan.get_results(p, key)

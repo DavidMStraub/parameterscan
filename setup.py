@@ -12,5 +12,5 @@ setup(name='parameterscan',
       long_description_content_type='text/markdown',
       license='MIT',
       packages=find_packages(),
-      install_requires=['pandas', 'numpy', 'sqlalchemy'],
+      install_requires=['pandas', 'numpy', 'sqlalchemy', 'schwimmbad'],
       )

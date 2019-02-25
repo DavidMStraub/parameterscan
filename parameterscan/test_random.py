@@ -3,6 +3,7 @@ import parameterscan
 import tempfile
 from shutil import rmtree
 import numpy as np
+import pandas.util.testing as pdt
 
 
 def random_par():
@@ -16,11 +17,24 @@ def obs_func(par):
 
 
 class TestRandom(unittest.TestCase):
-    def test_init(self):
+    def test_random(self):
         dir = tempfile.mkdtemp()
         store = parameterscan.ScanStoreSQL('scanname', datadir=dir)
         scan = parameterscan.RandomScan(store, random_par, {'obs': obs_func})
         scan.run(batchsize=3, batches=2)
+        obs = store.get('obs')
+        par = store.get('parameters')
+        self.assertTrue(obs.shape == (3 * 2, 2))
+        self.assertTrue(par.shape == (3 * 2, 2))
+        self.assertEqual(set(par.columns), {'x', 'y'})
+        self.assertEqual(set(obs.columns), {'bla', 'blo'})
+        rmtree(dir)
+
+    def test_random_threads(self):
+        dir = tempfile.mkdtemp()
+        store = parameterscan.ScanStoreSQL('scanname', datadir=dir)
+        scan = parameterscan.RandomScan(store, random_par, {'obs': obs_func})
+        scan.run(batchsize=3, batches=2, threads=8)
         obs = store.get('obs')
         par = store.get('parameters')
         self.assertTrue(obs.shape == (3 * 2, 2))
