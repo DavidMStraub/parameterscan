@@ -3,22 +3,20 @@ import pandas as pd
 import os
 import sqlalchemy
 from time import sleep
-import json
+import pickle
+from numbers import Number
 
 
-def serialize_array(x):
-    if isinstance(x, np.ndarray):
-        return json.dumps(x.tolist())
+def serialize(x):
+    if not isinstance(x, (str, Number)):
+        return pickle.dumps(x)
     else:
         return x
 
 
-def unserialize_array(x):
-    if isinstance(x, str):
-        try:
-            return np.array(json.loads(x))
-        except ValueError:
-            return x
+def unserialize(x):
+    if not isinstance(x, (str, Number)):
+        return pickle.loads(x)
     else:
         return x
 
@@ -44,7 +42,7 @@ class ScanStoreSQL(object):
         if_exists = 'append' if append else 'replace'
         while True:
             try:
-                df.applymap(serialize_array).to_sql(key, self.engine, if_exists=if_exists)
+                df.applymap(serialize).to_sql(key, self.engine, if_exists=if_exists)
                 break
             except sqlalchemy.exc.OperationalError:
                 sleep(0.001)
@@ -77,7 +75,7 @@ class ScanStoreSQL(object):
             except sqlalchemy.exc.OperationalError:
                 sleep(0.001)
         data = data.set_index('index')
-        return data.applymap(unserialize_array)
+        return data.applymap(unserialize)
 
     def drop_table(self, key):
         """Delete (drop) a table"""
